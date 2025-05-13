@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Google Sheets 訂單輸入</title>
-  <!-- 引入 Bootstrap 4 CSS -->
+  <title>月島甜點 Google Sheets 訂單輸入</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <style>
     body {
@@ -35,284 +34,232 @@
 </head>
 <body>
   <div class="container">
-    <h2 class="text-center mb-4">Google Sheets 訂單輸入</h2>
+    <div class="d-flex justify-content-end mb-3">
+      <button type="button" class="btn btn-warning" onclick="clearForm()">清空表單</button>
+    </div>
+    <h2 class="text-center mb-4">月島甜點 Google Sheets 訂單輸入</h2>
     <form id="orderForm">
       <div class="row">
-        <!-- 左邊欄位：類型、金流、取貨日期、編號、取件人、電話 -->
         <div class="col-md-6">
           <div class="form-group">
-            <label for="type">類型：</label>
-            <select id="type" class="form-control"></select>
+            <label for="paymentStatus">*付款狀態：</label>
+            <select id="paymentStatus" class="form-control" ></select>
           </div>
           <div class="form-group">
-            <label for="paymentMethod">金流：</label>
-            <select id="paymentMethod" class="form-control"></select>
-          </div>
-          <div class="form-group">
-            <label for="pickupDate">取貨日期：</label>
-            <input type="date" id="pickupDate" class="form-control" required>
-          </div>
-          <div class="form-group">
-            <label>編號：</label>
-            <div>
-              <span id="orderIdDisplay" class="font-weight-bold">請輸入電話...</span>
-              <input type="hidden" id="orderId">
-            </div>
-          </div>
-         
-          <div class="form-group">
-            <label for="paymentStatus">付款狀態：</label>
-            <select id="paymentStatus" class="form-control"></select>
-          </div>
-          <div class="form-group">
-            <label for="source">來源：</label>
+            <label for="source">*來源：</label>
             <input list="sourceOptions" id="source" class="form-control" required>
             <datalist id="sourceOptions"></datalist>
           </div>
           <div class="form-group">
-            <label for="recipient">取件人：</label>
+            <label for="pickupDate">*取貨日期：</label>
+            <input type="date" id="pickupDate" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="recipient">*姓名：</label>
             <input type="text" id="recipient" class="form-control" required>
           </div>
           <div class="form-group">
-            <label for="phone">電話：</label>
+            <label for="phone">*電話：</label>
             <input type="text" id="phone" class="form-control" required>
           </div>
-        </div>
-
-        <!-- 右邊欄位：分成多行排列 -->
-        <div class="col-md-6">
-         
-          <!-- 第三行：蛋糕口味 -->
           <div class="form-group">
-            <label for="cakeFlavor">蛋糕口味：</label>
+            <label for="registrant">*聯絡窗口(登記者)：</label>
+            <select id="registrant" class="form-control" required></select>
+          </div>
+          <div class="form-group">
+            <label for="notes">*附註：</label>
+            <textarea id="notes" class="form-control"></textarea>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label for="cakeFlavor">*品項：</label>
             <input list="cakeFlavorOptions" id="cakeFlavor" class="form-control" required>
             <datalist id="cakeFlavorOptions"></datalist>
           </div>
-          <!-- 第四行：規格 與 數量（兩欄） -->
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="size">規格：</label>
-                <select id="size" class="form-control"></select>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="quantity">數量：</label>
-                <input type="number" id="quantity" class="form-control" required>
-              </div>
-            </div>
-          </div>
-          <!-- 第五行：蠟燭 與 取貨時段（兩欄） -->
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="candles">蠟燭：</label>
-                <input list="candlesOptions" id="candles" class="form-control" required>
-                <datalist id="candlesOptions"></datalist>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="pickupTime">取貨時段：</label>
-                <select id="pickupTime" class="form-control"></select>
-              </div>
-            </div>
-          </div>
-          <!-- 第六行：折扣 與 購物金/運費（兩欄） -->
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="discount">折扣：</label>
-                <input list="discountOptions" id="discount" class="form-control" step="0.05">
-                <datalist id="discountOptions"></datalist>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="shippingFee">購物金/運費：</label>
-                <input type="number" id="shippingFee" class="form-control" step="170" value="0">
-              </div>
-            </div>
-          </div>
-          <!-- 第七行：單價 與 登記人（兩欄） -->
-          <div class="row">
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="price">單價：</label>
-                <input type="number" id="price" class="form-control" disabled>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="form-group">
-                <label for="registrant">登記人：</label>
-                <select id="registrant" class="form-control"></select>
-              </div>
-            </div>
-          </div>
-          <!-- 第八行：宅配地址 -->
           <div class="form-group">
-            <label for="address">宅配地址：</label>
-            <input type="text" id="address" class="form-control">
+            <label for="size">*規格：</label>
+            <select id="size" class="form-control" required></select>
           </div>
-          <!-- 第九行：備註 -->
           <div class="form-group">
-            <label for="notes">備註：</label>
-            <textarea id="notes" class="form-control"></textarea>
+            <label for="quantity">*數量：</label>
+            <input type="number" id="quantity" class="form-control" required value="1" min="1" >
           </div>
-          <!-- 隱藏欄位 -->
-          <input type="hidden" id="lastFive">
-          <input type="hidden" id="uniqueId">
+          <div class="form-group">
+            <label for="candles">*蠟燭：</label>
+            <input list="candlesOptions" id="candles" class="form-control" required>
+            <datalist id="candlesOptions"></datalist>
+          </div>
+          <div class="form-group">
+            <label for="discount">*折扣：</label>
+            <input type="number" id="discount" class="form-control" step="0.05" value="1" min="0">
+            <datalist id="discountOptions"></datalist>
+          </div>
+          <div class="form-group">
+            <label for="price">價格：</label>
+            <input type="number" id="price" class="form-control" disabled>
+          </div>
+          <div class="form-group">
+            <label for="pickupTime">*方式／時段：</label>
+            <select id="pickupTime" class="form-control" required></select>
+          </div>
         </div>
       </div>
-      <button type="submit" class="btn btn-primary btn-block">提交</button>
+      <div class="d-flex justify-content-center mt-3">
+        <button type="submit" class="btn btn-primary">新增訂單</button>
+      </div>
     </form>
-    <p id="responseMessage" class="text-center mt-3"></p>
+    <div id="responseMessage" class="mt-3 text-center text-success"></div>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // UUID v4 生成器
-    function generateUUID() {
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-      });
-    }
+    let cakeData = [];
 
-    document.addEventListener("DOMContentLoaded", function() {
-      // 如果 uniqueId 欄位沒有值，則自動生成
-      var uniqueIdField = document.getElementById("uniqueId");
-      if (!uniqueIdField.value) {
-        uniqueIdField.value = generateUUID();
-      }
-
-      fetch("options.json")
-        .then(response => response.json())
+    function loadCakeData() {
+      fetch("https://script.google.com/macros/s/AKfycbxLpJcOGAthne51J5CrQyQl-N_Q_HDTYvDWBmAyPzPLmkwjyDNFdj1zA0lBbAHwJeeENQ/exec")
+        .then(res => res.json())
         .then(data => {
-          console.log("JSON 讀取成功:", data);
-          populateSelect("type", data.types, "自取");
-          populateSelect("paymentMethod", data.paymentMethods, "現金");
-          populateSelect("pickupTime", data.pickupTimes, "下午");
-          populateSelect("paymentStatus", data.paymentStatuses, "未付款");
-          populateSelect("size", data.sizes, "八吋");
-          populateSelect("registrant", data.registrants, "佳穎");
-          populateDatalist("sourceOptions", "source", data.sources, "現場");
-          populateDatalist("cakeFlavorOptions", "cakeFlavor", data.cakeFlavors);
-          populateDatalist("candlesOptions", "candles", data.candles, "金色");
-          populateDatalist("discountOptions", "discount", data.discounts, "1");
+          cakeData = data.cakes || [];
+          const flavorSet = [...new Set(cakeData.map(item => item["品項名稱"]).filter(Boolean))];
+          populateDatalist("cakeFlavorOptions", "cakeFlavor", flavorSet);
+          const options = data.options || {};
+          populateSelect("paymentStatus", options["付款狀態"]);
+          populateDatalist("sourceOptions", "source", options["來源"]);
+          populateDatalist("candlesOptions", "candles", options["蠟燭"]);
+          populateSelect("pickupTime", options["方式/時段"]);
+          populateSelect("registrant", options["聯絡窗口"]);
+          populateDatalist("discountOptions", "discount", options["折扣"]);
         })
-        .catch(error => console.error("載入 JSON 失敗:", error));
-
-      document.getElementById("phone").addEventListener("input", generateOrderId);
-      function generateOrderId() {
-        const phone = document.getElementById("phone").value;
-        const orderIdDisplay = document.getElementById("orderIdDisplay");
-        const orderIdInput = document.getElementById("orderId");
-        if (phone.length >= 3) {
-          const today = new Date();
-          const yy = String(today.getFullYear()).slice(2, 4);
-          const mm = String(today.getMonth() + 1).padStart(2, "0");
-          const dd = String(today.getDate()).padStart(2, "0");
-          const lastThreeDigits = phone.slice(-3);
-          const orderId = `${yy}${mm}${dd}${lastThreeDigits}`;
-          orderIdDisplay.textContent = orderId;
-          orderIdInput.value = orderId;
-        } else {
-          orderIdDisplay.textContent = "請輸入電話...";
-          orderIdInput.value = "";
-        }
-      }
-    });
-
-    function populateSelect(selectId, options, defaultValue = null) {
-      const select = document.getElementById(selectId);
-      select.innerHTML = "";
-      options.forEach(option => {
-        let opt = document.createElement("option");
-        opt.value = option;
-        opt.textContent = option;
-        if (option === defaultValue) {
-          opt.selected = true;
-        }
-        select.appendChild(opt);
-      });
+        .catch(err => console.error("❌ 載入失敗：", err));
     }
 
-    function populateDatalist(datalistId, inputId, options, defaultValue = null) {
+    function populateDatalist(datalistId, inputId, options) {
       const datalist = document.getElementById(datalistId);
-      const inputField = document.getElementById(inputId);
+      const input = document.getElementById(inputId);
+      if (!datalist || !Array.isArray(options)) return;
+    
       datalist.innerHTML = "";
+    
+      // ➤ 加入一個空白選項
+      const blankOption = document.createElement("option");
+      blankOption.value = "";
+      datalist.appendChild(blankOption);
+    
       options.forEach(option => {
-        let opt = document.createElement("option");
+        const opt = document.createElement("option");
         opt.value = option;
         datalist.appendChild(opt);
       });
-      if (defaultValue && inputField) {
-        inputField.value = defaultValue;
-      }
     }
 
-    // 送出訂單前彈出確認視窗
-    document.getElementById("orderForm").addEventListener("submit", function(event) {
-      event.preventDefault();
-      var pickupDateStr = document.getElementById("pickupDate").value;
-      if (!pickupDateStr) {
-        alert("請輸入取貨日期！");
-        return;
-      }
-      var pickupDate = new Date(pickupDateStr);
-      var weekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
-      var weekday = weekdays[pickupDate.getDay()];
-      var displayDate = pickupDateStr + " (" + weekday + ")";
-      
-      var cakeFlavor = document.getElementById("cakeFlavor").value;
-      var quantity = document.getElementById("quantity").value;
-      var type = document.getElementById("type").value;
-      
-      var confirmMsg = displayDate + " ｜ " + cakeFlavor + " ｜ " + quantity + "個 ｜ " + type + "\n請確認訂單無誤";
-      if (!confirm(confirmMsg)) {
-        return;
-      }
-      
-      var formData = new URLSearchParams();
-      formData.append("uniqueId", document.getElementById("uniqueId").value);
-      formData.append("type", document.getElementById("type").value);
-      formData.append("paymentMethod", document.getElementById("paymentMethod").value);
-      formData.append("pickupDate", document.getElementById("pickupDate").value);
-      formData.append("paymentStatus", document.getElementById("paymentStatus").value);
-      formData.append("orderId", document.getElementById("orderId").value);
-      formData.append("source", document.getElementById("source").value);
-      formData.append("recipient", document.getElementById("recipient").value);
-      formData.append("phone", document.getElementById("phone").value);
-      formData.append("cakeFlavor", document.getElementById("cakeFlavor").value);
-      formData.append("size", document.getElementById("size").value);
-      formData.append("quantity", document.getElementById("quantity").value);
-      formData.append("candles", document.getElementById("candles").value);
-      formData.append("pickupTime", document.getElementById("pickupTime").value);
-      formData.append("discount", document.getElementById("discount").value);
-      formData.append("shippingFee", document.getElementById("shippingFee").value);
-      formData.append("price", document.getElementById("price").value);
-      formData.append("registrant", document.getElementById("registrant").value);
-      formData.append("address", document.getElementById("address").value);
-      formData.append("notes", document.getElementById("notes").value);
-      formData.append("lastFive", document.getElementById("lastFive").value);
-
-      fetch("https://script.google.com/macros/s/AKfycbxDCQKt-yOYKOtUHw4joKXEY8aEPU6ben18hQvsLw6sWqF29R8gCMqVO3RdTlY6ETREcg/exec", {
-        method: "POST",
-        body: formData.toString(),
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        mode: "cors"
-      })
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById("responseMessage").innerText = data.message;
-      })
-      .catch(error => {
-        document.getElementById("responseMessage").innerText = "請確認訂單輸入是否正確！";
+    function populateSelect(selectId, options, defaultValue = "") {
+      const select = document.getElementById(selectId);
+      if (!select || !Array.isArray(options)) return;
+    
+      select.innerHTML = "";
+    
+      // 插入一個空白選項
+      const blankOption = document.createElement("option");
+      blankOption.value = "";
+      blankOption.textContent = "";
+      select.appendChild(blankOption);
+    
+      options.forEach(option => {
+        const opt = document.createElement("option");
+        opt.value = option;
+        opt.textContent = option;
+        select.appendChild(opt);
       });
+    
+      // 預設為空白或指定值
+      select.value = defaultValue;
+    }
+
+    function autoFillSpecOptions() {
+      const selectedFlavor = document.getElementById("cakeFlavor").value.trim();
+      const matchedSpecs = cakeData
+        .filter(item => item["品項名稱"] === selectedFlavor)
+        .map(item => item["規格"]);
+      const uniqueSpecs = [...new Set(matchedSpecs)];
+      populateSelect("size", uniqueSpecs);
+      updateCalculatedPrice();
+    }
+
+    function updateCalculatedPrice() {
+      const flavor = document.getElementById("cakeFlavor").value.trim();
+      const size = document.getElementById("size").value.trim();
+      const quantity = parseFloat(document.getElementById("quantity").value) || 0;
+      const discount = parseFloat(document.getElementById("discount").value) || 1;
+
+      const matched = cakeData.find(item =>
+        item["品項名稱"] === flavor && item["規格"] === size
+      );
+
+      const unitPrice = matched ? parseFloat(matched["售價"]) : 0;
+      const totalPrice = unitPrice * quantity * discount;
+
+      document.getElementById("price").value = totalPrice ? totalPrice.toFixed(0) : "";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+  loadCakeData();
+  document.getElementById("cakeFlavor").addEventListener("change", autoFillSpecOptions);
+  document.getElementById("size").addEventListener("change", updateCalculatedPrice);
+  document.getElementById("quantity").addEventListener("input", updateCalculatedPrice);
+  document.getElementById("discount").addEventListener("input", updateCalculatedPrice);
+
+  // ✅ 表單送出邏輯放這裡！
+  document.getElementById("orderForm").addEventListener("submit", function (event) {
+    event.preventDefault(); // 防止預設送出
+    // 跳出確認通知
+    const pickupDate = document.getElementById("pickupDate").value;
+    const cakeFlavor = document.getElementById("cakeFlavor").value;
+    const confirmMessage = `取貨日期：${pickupDate}\n蛋糕口味：${cakeFlavor}\n\n請確認資料是否正確並送出？`;
+
+    if (!confirm(confirmMessage)) {
+      document.getElementById("responseMessage").innerText = "🚫 訂單已取消";
+      return;
+    }
+
+    const formData = new URLSearchParams();
+    formData.append("paymentStatus", document.getElementById("paymentStatus").value);
+    formData.append("source", document.getElementById("source").value);
+    formData.append("pickupDate", document.getElementById("pickupDate").value);
+    formData.append("recipient", document.getElementById("recipient").value);
+    formData.append("phone", document.getElementById("phone").value);
+    formData.append("cakeFlavor", document.getElementById("cakeFlavor").value);
+    formData.append("size", document.getElementById("size").value);
+    formData.append("quantity", document.getElementById("quantity").value);
+    formData.append("candles", document.getElementById("candles").value);
+    formData.append("discount", document.getElementById("discount").value);
+    formData.append("pickupTime", document.getElementById("pickupTime").value);
+    formData.append("price", document.getElementById("price").value);
+    formData.append("registrant", document.getElementById("registrant").value);
+    formData.append("notes", document.getElementById("notes").value);
+
+    fetch("https://script.google.com/macros/s/AKfycbynD2k-x_sA6vU1G51EZoNGdhInwP3uDQB0SvoRlyh81rGjTU-bvTAS-24skjYHhR_rMg/exec", {
+      method: "POST",
+      body: formData.toString(),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      mode: "no-cors"
+    })
+    .then(() => {
+      // ⚠️ 因為是 no-cors 所以不能 .json()，直接視為成功
+      console.log("✅ 資料已送出（no-cors 模式）");
+      document.getElementById("responseMessage").innerText = "✅ 訂單已送出";
+    })
+    .catch(err => {
+      console.error("❌ 發送失敗：", err);
+      document.getElementById("responseMessage").innerText = "❌ 無法送出訂單，請稍後重試";
     });
+  });
+});
+function clearForm() {
+  document.getElementById("orderForm").reset();
+  document.getElementById("responseMessage").innerText = "";
+}
   </script>
 </body>
 </html>

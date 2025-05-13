@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>蛋糕訂單表單</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      margin-top: 30px;
+      max-width: 600px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h3 class="text-center">蛋糕訂購表單</h3>
+
+    <form>
+      <div class="form-group">
+        <label for="cakeFlavor">品項：</label>
+        <input list="cakeFlavorOptions" id="cakeFlavor" class="form-control">
+        <datalist id="cakeFlavorOptions"></datalist>
+      </div>
+
+      <div class="form-group">
+        <label for="size">規格：</label>
+        <select id="size" class="form-control"></select>
+      </div>
+
+      <div class="form-group">
+        <label for="price">價格：</label>
+        <input type="number" id="price" class="form-control" disabled>
+      </div>
+
+      <div class="form-group">
+        <label for="quantity">數量：</label>
+        <input type="number" id="quantity" class="form-control">
+      </div>
+
+      <p id="responseMessage" class="text-center font-weight-bold"></p>
+    </form>
+  </div>
+
+  <script>
+    let cakeData = [];
+
+    function loadCakeData() {
+      fetch("https://script.google.com/macros/s/AKfycbxGqpXpsniyKKJJZbeICg_RRmY3a7qFUlO-Zq9oKDT8eMdKZSbpFPk-RfZQw8sL-8LAYg/exec")
+        .then(res => res.json())
+        .then(data => {
+          cakeData = data.filter(item => item["品項名稱"] && item["規格"]);
+
+          const flavorSet = new Set();
+          cakeData.forEach(item => flavorSet.add(item["品項名稱"]));
+          populateDatalist("cakeFlavorOptions", "cakeFlavor", Array.from(flavorSet));
+        })
+        .catch(err => {
+          console.error("資料載入失敗:", err);
+          document.getElementById("responseMessage").innerText = "❌ 載入資料失敗";
+        });
+    }
+
+    function populateDatalist(datalistId, inputId, options) {
+      const datalist = document.getElementById(datalistId);
+      const input = document.getElementById(inputId);
+      if (!datalist) return;
+      datalist.innerHTML = "";
+      options.forEach(option => {
+        const opt = document.createElement("option");
+        opt.value = option;
+        datalist.appendChild(opt);
+      });
+    }
+
+    function populateSelect(selectId, options) {
+      const select = document.getElementById(selectId);
+      select.innerHTML = "";
+      options.forEach(option => {
+        const opt = document.createElement("option");
+        opt.value = option;
+        opt.textContent = option;
+        select.appendChild(opt);
+      });
+    }
+
+    function autoFillSpecOptions() {
+      const selectedFlavor = document.getElementById("cakeFlavor").value.trim();
+      const matchedSpecs = cakeData
+        .filter(item => item["品項名稱"] === selectedFlavor)
+        .map(item => item["規格"]);
+      const uniqueSpecs = [...new Set(matchedSpecs)];
+      populateSelect("size", uniqueSpecs);
+      autoFillPrice();
+    }
+
+    function autoFillPrice() {
+      const flavor = document.getElementById("cakeFlavor").value.trim();
+      const size = document.getElementById("size").value.trim();
+      const matched = cakeData.find(item => item["品項名稱"] === flavor && item["規格"] === size);
+      if (matched) {
+        document.getElementById("price").value = matched["售價"];
+      } else {
+        document.getElementById("price").value = "";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      loadCakeData();
+      document.getElementById("cakeFlavor").addEventListener("change", autoFillSpecOptions);
+      document.getElementById("size").addEventListener("change", autoFillPrice);
+    });
+  </script>
+</body>
+</html>
