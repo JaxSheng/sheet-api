@@ -34,6 +34,7 @@
 </head>
 <body>
   <div class="container">
+    <div id="loadingMessage" class="text-center text-warning">資料載入中，請稍候...</div>
     <div class="d-flex justify-content-end mb-3">
       <button type="button" class="btn btn-warning" onclick="clearForm()">清空表單</button>
     </div>
@@ -118,21 +119,38 @@
     let cakeData = [];
 
     function loadCakeData() {
-      fetch("https://script.google.com/macros/s/AKfycbzMPJaixOkA3iEZK4u-0bRqmi6aEiJgTUAIB-ue9wMZP_L15XBtzfXdGTN3jMit7MjOSw/exec")
-        .then(res => res.json())
+      const url = "https://script.google.com/macros/s/AKfycbwlYr9J0ju5SLdraU0R8EjkqFpxv_qZXmA4AROU6-DRgTisz5Zt9jt8Y9S8H75z-RySDw/exec";
+      document.getElementById("loadingMessage").style.display = "";
+      fetch(url)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("伺服器回傳錯誤：" + response.status);
+          }
+          return response.json();
+        })
         .then(data => {
-          cakeData = data.cakes || [];
+          if (!data || !data.cakes || !data.options) {
+            throw new Error("無法取得正確的數據結構");
+          }
+          cakeData = data.cakes;
           const flavorSet = [...new Set(cakeData.map(item => item["品項名稱"]).filter(Boolean))];
           populateDatalist("cakeFlavorOptions", "cakeFlavor", flavorSet);
-          const options = data.options || {};
+          const options = data.options;
           populateSelect("paymentStatus", options["付款狀態"]);
           populateDatalist("sourceOptions", "source", options["來源"]);
           populateDatalist("candlesOptions", "candles", options["蠟燭"]);
           populateSelect("pickupTime", options["方式/時段"]);
           populateSelect("registrant", options["聯絡窗口"]);
           populateDatalist("discountOptions", "discount", options["折扣"]);
+          console.log("✅ 資料成功載入");
+          document.getElementById("responseMessage").innerText = "✅ 資料成功載入";
+          document.getElementById("loadingMessage").style.display = "none";
         })
-        .catch(err => console.error("❌ 載入失敗：", err));
+        .catch(err => {
+          console.error("❌ 載入失敗：", err);
+          document.getElementById("responseMessage").innerText = "❌ 資料載入失敗，請重試";
+          document.getElementById("loadingMessage").style.display = "none";
+        });
     }
 
     function populateDatalist(datalistId, inputId, options) {
@@ -156,24 +174,21 @@
 
     function populateSelect(selectId, options, defaultValue = "") {
       const select = document.getElementById(selectId);
-      if (!select || !Array.isArray(options)) return;
-    
+      if (!select || !Array.isArray(options)) {
+        console.error("❌ 選單無法正確載入：" + selectId);
+        return;
+      }
       select.innerHTML = "";
-    
-      // 插入一個空白選項
       const blankOption = document.createElement("option");
       blankOption.value = "";
       blankOption.textContent = "";
       select.appendChild(blankOption);
-    
       options.forEach(option => {
         const opt = document.createElement("option");
         opt.value = option;
         opt.textContent = option;
         select.appendChild(opt);
       });
-    
-      // 預設為空白或指定值
       select.value = defaultValue;
     }
 
@@ -204,58 +219,60 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-  loadCakeData();
-  document.getElementById("cakeFlavor").addEventListener("change", autoFillSpecOptions);
-  document.getElementById("size").addEventListener("change", updateCalculatedPrice);
-  document.getElementById("quantity").addEventListener("input", updateCalculatedPrice);
-  document.getElementById("discount").addEventListener("input", updateCalculatedPrice);
+      // 顯示載入中訊息
+      document.getElementById("loadingMessage").style.display = "";
+      loadCakeData();
+      document.getElementById("cakeFlavor").addEventListener("change", autoFillSpecOptions);
+      document.getElementById("size").addEventListener("change", updateCalculatedPrice);
+      document.getElementById("quantity").addEventListener("input", updateCalculatedPrice);
+      document.getElementById("discount").addEventListener("input", updateCalculatedPrice);
 
-  // ✅ 表單送出邏輯放這裡！
-  document.getElementById("orderForm").addEventListener("submit", function (event) {
-    event.preventDefault(); // 防止預設送出
-    // 跳出確認通知
-    const pickupDate = document.getElementById("pickupDate").value;
-    const cakeFlavor = document.getElementById("cakeFlavor").value;
-    const confirmMessage = `取貨日期：${pickupDate}\n蛋糕口味：${cakeFlavor}\n\n請確認資料是否正確並送出？`;
+      // ✅ 表單送出邏輯放這裡！
+      document.getElementById("orderForm").addEventListener("submit", function (event) {
+        event.preventDefault(); // 防止預設送出
+        // 跳出確認通知
+        const pickupDate = document.getElementById("pickupDate").value;
+        const cakeFlavor = document.getElementById("cakeFlavor").value;
+        const confirmMessage = `取貨日期：${pickupDate}\n蛋糕口味：${cakeFlavor}\n\n請確認資料是否正確並送出？`;
 
-    if (!confirm(confirmMessage)) {
-      document.getElementById("responseMessage").innerText = "🚫 訂單已取消";
-      return;
-    }
+        if (!confirm(confirmMessage)) {
+          document.getElementById("responseMessage").innerText = "🚫 訂單已取消";
+          return;
+        }
 
-    const formData = new URLSearchParams();
-    formData.append("paymentStatus", document.getElementById("paymentStatus").value);
-    formData.append("source", document.getElementById("source").value);
-    formData.append("pickupDate", document.getElementById("pickupDate").value);
-    formData.append("recipient", document.getElementById("recipient").value);
-    formData.append("phone", document.getElementById("phone").value);
-    formData.append("cakeFlavor", document.getElementById("cakeFlavor").value);
-    formData.append("size", document.getElementById("size").value);
-    formData.append("quantity", document.getElementById("quantity").value);
-    formData.append("candles", document.getElementById("candles").value);
-    formData.append("discount", document.getElementById("discount").value);
-    formData.append("pickupTime", document.getElementById("pickupTime").value);
-    formData.append("price", document.getElementById("price").value);
-    formData.append("registrant", document.getElementById("registrant").value);
-    formData.append("notes", document.getElementById("notes").value);
+        const formData = new URLSearchParams();
+        formData.append("paymentStatus", document.getElementById("paymentStatus").value);
+        formData.append("source", document.getElementById("source").value);
+        formData.append("pickupDate", document.getElementById("pickupDate").value);
+        formData.append("recipient", document.getElementById("recipient").value);
+        formData.append("phone", document.getElementById("phone").value);
+        formData.append("cakeFlavor", document.getElementById("cakeFlavor").value);
+        formData.append("size", document.getElementById("size").value);
+        formData.append("quantity", document.getElementById("quantity").value);
+        formData.append("candles", document.getElementById("candles").value);
+        formData.append("discount", document.getElementById("discount").value);
+        formData.append("pickupTime", document.getElementById("pickupTime").value);
+        formData.append("price", document.getElementById("price").value);
+        formData.append("registrant", document.getElementById("registrant").value);
+        formData.append("notes", document.getElementById("notes").value);
 
-    fetch("https://script.google.com/macros/s/AKfycbzMPJaixOkA3iEZK4u-0bRqmi6aEiJgTUAIB-ue9wMZP_L15XBtzfXdGTN3jMit7MjOSw/exec", {
-      method: "POST",
-      body: formData.toString(),
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      mode: "no-cors"
-    })
-    .then(() => {
-      // ⚠️ 因為是 no-cors 所以不能 .json()，直接視為成功
-      console.log("✅ 資料已送出（no-cors 模式）");
-      document.getElementById("responseMessage").innerText = "✅ 訂單已送出";
-    })
-    .catch(err => {
-      console.error("❌ 發送失敗：", err);
-      document.getElementById("responseMessage").innerText = "❌ 無法送出訂單，請稍後重試";
+        fetch("https://script.google.com/macros/s/AKfycbwlYr9J0ju5SLdraU0R8EjkqFpxv_qZXmA4AROU6-DRgTisz5Zt9jt8Y9S8H75z-RySDw/exec", {
+          method: "POST",
+          body: formData.toString(),
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          mode: "no-cors"
+        })
+        .then(() => {
+          // ⚠️ 因為是 no-cors 所以不能 .json()，直接視為成功
+          console.log("✅ 資料已送出（no-cors 模式）");
+          document.getElementById("responseMessage").innerText = "✅ 訂單已送出";
+        })
+        .catch(err => {
+          console.error("❌ 發送失敗：", err);
+          document.getElementById("responseMessage").innerText = "❌ 無法送出訂單，請稍後重試";
+        });
+      });
     });
-  });
-});
 function clearForm() {
   document.getElementById("orderForm").reset();
   document.getElementById("responseMessage").innerText = "";
