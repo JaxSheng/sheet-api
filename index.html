@@ -43,11 +43,11 @@
       <div class="row">
         <div class="col-md-6">
           <div class="form-group">
-            <label for="paymentStatus">*付款狀態：</label>
+            <label for="paymentStatus">付款狀態：</label>
             <select id="paymentStatus" class="form-control" ></select>
           </div>
           <div class="form-group">
-            <label for="source">*來源：</label>
+            <label for="source">來源：</label>
             <input list="sourceOptions" id="source" class="form-control" required>
             <datalist id="sourceOptions"></datalist>
           </div>
@@ -64,11 +64,11 @@
             <input type="text" id="phone" class="form-control" required>
           </div>
           <div class="form-group">
-            <label for="registrant">*聯絡窗口(登記者)：</label>
+            <label for="registrant">聯絡窗口(登記者)：</label>
             <select id="registrant" class="form-control" required></select>
           </div>
           <div class="form-group">
-            <label for="notes">*附註：</label>
+            <label for="notes">附註：</label>
             <textarea id="notes" class="form-control"></textarea>
           </div>
         </div>
@@ -79,8 +79,8 @@
             <datalist id="cakeFlavorOptions"></datalist>
           </div>
           <div class="form-group">
-            <label for="size">*規格：</label>
-            <select id="size" class="form-control" required></select>
+            <label for="size">規格：</label>
+            <select id="size" class="form-control" ></select>
           </div>
           <div class="form-group">
             <label for="quantity">*數量：</label>
@@ -119,7 +119,7 @@
     let cakeData = [];
 
     function loadCakeData() {
-      const url = "https://script.google.com/macros/s/AKfycbwlYr9J0ju5SLdraU0R8EjkqFpxv_qZXmA4AROU6-DRgTisz5Zt9jt8Y9S8H75z-RySDw/exec";
+      const url = "https://script.google.com/macros/s/AKfycbzyd9UQMJ8UYKvm_gqSxuxJRILAYmqFdd-SSYJscXojYRg-XLcbcna6qJWuKQ0Te8Lmaw/exec";
       document.getElementById("loadingMessage").style.display = "";
       fetch(url)
         .then(response => {
@@ -256,7 +256,7 @@
         formData.append("registrant", document.getElementById("registrant").value);
         formData.append("notes", document.getElementById("notes").value);
 
-        fetch("https://script.google.com/macros/s/AKfycbwlYr9J0ju5SLdraU0R8EjkqFpxv_qZXmA4AROU6-DRgTisz5Zt9jt8Y9S8H75z-RySDw/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbzyd9UQMJ8UYKvm_gqSxuxJRILAYmqFdd-SSYJscXojYRg-XLcbcna6qJWuKQ0Te8Lmaw/exec", {
           method: "POST",
           body: formData.toString(),
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
