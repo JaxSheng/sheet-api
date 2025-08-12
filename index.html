@@ -104,6 +104,21 @@
           <div class="form-group">
             <label for="pickupTime">*方式／時段：</label>
             <select id="pickupTime" class="form-control" required></select>
+            <div id="deliveryWarning" class="text-danger small mt-1" style="display:none;"></div>
+          </div>
+          <div id="deliverySection" class="border rounded p-2 mt-2" style="display:none;">
+            <div class="form-group mb-2">
+              <label for="shipName">收件人姓名：</label>
+              <input type="text" id="shipName" class="form-control">
+            </div>
+            <div class="form-group mb-2">
+              <label for="shipPhone">收件人電話：</label>
+              <input type="text" id="shipPhone" class="form-control">
+            </div>
+            <div class="form-group mb-0">
+              <label for="shipAddress">宅配地址：</label>
+              <textarea id="shipAddress" class="form-control" rows="2"></textarea>
+            </div>
           </div>
         </div>
       </div>
@@ -117,167 +132,281 @@
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    let cakeData = [];
+  let cakeData = [];
 
-    function loadCakeData() {
-      const url = "https://script.google.com/macros/s/AKfycbzyd9UQMJ8UYKvm_gqSxuxJRILAYmqFdd-SSYJscXojYRg-XLcbcna6qJWuKQ0Te8Lmaw/exec";
-      document.getElementById("loadingMessage").style.display = "";
-      fetch(url)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error("伺服器回傳錯誤：" + response.status);
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (!data || !data.cakes || !data.options) {
-            throw new Error("無法取得正確的數據結構");
-          }
-          cakeData = data.cakes;
-          const flavorSet = [...new Set(cakeData.map(item => item["品項名稱"]).filter(Boolean))];
-          populateDatalist("cakeFlavorOptions", "cakeFlavor", flavorSet);
-          const options = data.options;
-          populateSelect("paymentStatus", options["付款狀態"]);
-          populateDatalist("sourceOptions", "source", options["來源"]);
-          populateDatalist("candlesOptions", "candles", options["蠟燭"]);
-          populateSelect("pickupTime", options["方式/時段"]);
-          populateSelect("registrant", options["聯絡窗口"]);
-          populateDatalist("discountOptions", "discount", options["折扣"]);
-          console.log("✅ 資料成功載入");
-          document.getElementById("responseMessage").innerText = "✅ 資料成功載入";
-          document.getElementById("loadingMessage").style.display = "none";
-        })
-        .catch(err => {
-          console.error("❌ 載入失敗：", err);
-          document.getElementById("responseMessage").innerText = "❌ 資料載入失敗，請重試";
-          document.getElementById("loadingMessage").style.display = "none";
-        });
-    }
+  function loadCakeData() {
+    const url = "https://script.google.com/macros/s/AKfycbzyd9UQMJ8UYKvm_gqSxuxJRILAYmqFdd-SSYJscXojYRg-XLcbcna6qJWuKQ0Te8Lmaw/exec";
+    document.getElementById("loadingMessage").style.display = "";
+    fetch(url)
+      .then(response => {
+        if (!response.ok) throw new Error("伺服器回傳錯誤：" + response.status);
+        return response.json();
+      })
+      .then(data => {
+        if (!data || !data.cakes || !data.options) throw new Error("無法取得正確的數據結構");
+        cakeData = data.cakes;
 
-    function populateDatalist(datalistId, inputId, options) {
-      const datalist = document.getElementById(datalistId);
-      const input = document.getElementById(inputId);
-      if (!datalist || !Array.isArray(options)) return;
-    
-      datalist.innerHTML = "";
-    
-      // ➤ 加入一個空白選項
-      const blankOption = document.createElement("option");
-      blankOption.value = "";
-      datalist.appendChild(blankOption);
-    
-      options.forEach(option => {
-        const opt = document.createElement("option");
-        opt.value = option;
-        datalist.appendChild(opt);
+        const flavorSet = [...new Set(cakeData.map(item => item["品項名稱"]).filter(Boolean))];
+        populateDatalist("cakeFlavorOptions", "cakeFlavor", flavorSet);
+
+        const options = data.options;
+        populateSelect("paymentStatus", options["付款狀態"]);
+        populateDatalist("sourceOptions", "source", options["來源"]);
+        populateDatalist("candlesOptions", "candles", options["蠟燭"]);
+        populateSelect("pickupTime", options["方式/時段"]);
+        populateSelect("registrant", options["聯絡窗口"]);
+        populateDatalist("discountOptions", "discount", options["折扣"]);
+
+        console.log("✅ 資料成功載入");
+        document.getElementById("responseMessage").innerText = "✅ 資料成功載入";
+        document.getElementById("loadingMessage").style.display = "none";
+
+        // 載入完成做一次狀態同步
+        toggleDeliveryFields();
+        checkDeliveryDateRules(false);
+      })
+      .catch(err => {
+        console.error("❌ 載入失敗：", err);
+        document.getElementById("responseMessage").innerText = "❌ 資料載入失敗，請重試";
+        document.getElementById("loadingMessage").style.display = "none";
       });
+  }
+
+  function populateDatalist(datalistId, inputId, options) {
+    const datalist = document.getElementById(datalistId);
+    if (!datalist || !Array.isArray(options)) return;
+
+    datalist.innerHTML = "";
+    const blankOption = document.createElement("option");
+    blankOption.value = "";
+    datalist.appendChild(blankOption);
+
+    options.forEach(option => {
+      const opt = document.createElement("option");
+      opt.value = option;
+      datalist.appendChild(opt);
+    });
+  }
+
+  function populateSelect(selectId, options, defaultValue = "") {
+    const select = document.getElementById(selectId);
+    if (!select || !Array.isArray(options)) {
+      console.error("❌ 選單無法正確載入：" + selectId);
+      return;
+    }
+    select.innerHTML = "";
+    const blankOption = document.createElement("option");
+    blankOption.value = "";
+    blankOption.textContent = "";
+    select.appendChild(blankOption);
+    options.forEach(option => {
+      const opt = document.createElement("option");
+      opt.value = option;
+      opt.textContent = option;
+      select.appendChild(opt);
+    });
+    select.value = defaultValue;
+  }
+
+  function autoFillSpecOptions() {
+    const selectedFlavor = document.getElementById("cakeFlavor").value.trim();
+    const matchedSpecs = cakeData
+      .filter(item => item["品項名稱"] === selectedFlavor)
+      .map(item => item["規格"]);
+    const uniqueSpecs = [...new Set(matchedSpecs)];
+    populateDatalist("sizeOptions", "size", uniqueSpecs);
+    updateCalculatedPrice();
+  }
+
+  function updateCalculatedPrice() {
+    const flavor = document.getElementById("cakeFlavor").value.trim();
+    const size = document.getElementById("size").value.trim();
+    const quantity = parseFloat(document.getElementById("quantity").value) || 0;
+    const discount = parseFloat(document.getElementById("discount").value) || 1;
+
+    const matched = cakeData.find(item =>
+      item["品項名稱"] === flavor && item["規格"] === size
+    );
+
+    const unitPrice = matched ? parseFloat(matched["售價"]) : 0;
+    const totalPrice = unitPrice * quantity * discount;
+
+    document.getElementById("price").value = totalPrice ? totalPrice.toFixed(0) : "";
+  }
+
+  function toggleDeliveryFields() {
+    const method = document.getElementById("pickupTime").value || "";
+    const isDelivery = method.includes("宅配");
+
+    const section = document.getElementById("deliverySection");
+    section.style.display = isDelivery ? "" : "none";
+
+    ["shipName","shipPhone","shipAddress"].forEach(id => {
+      const el = document.getElementById(id);
+      el.required = isDelivery;
+      if (!isDelivery) el.value = "";
+    });
+  }
+
+  // 自動建立提醒區塊（若 HTML 沒加）
+  function ensureDeliveryWarningPlaceholder() {
+    if (!document.getElementById("deliveryWarning")) {
+      const warn = document.createElement("div");
+      warn.id = "deliveryWarning";
+      warn.className = "text-danger small mt-1";
+      warn.style.display = "none";
+      const pickupTimeEl = document.getElementById("pickupTime");
+      pickupTimeEl.parentElement.appendChild(warn);
+    }
+  }
+
+  // 宅配日期規則：週日禁止、週一提醒
+  function checkDeliveryDateRules(showAlert) {
+    ensureDeliveryWarningPlaceholder();
+    const method = document.getElementById("pickupTime").value || "";
+    const isDelivery = method.includes("宅配");
+    const dateStr = document.getElementById("pickupDate").value; // YYYY-MM-DD
+    const warnEl = document.getElementById("deliveryWarning");
+
+    // 清提醒
+    warnEl.style.display = "none";
+    warnEl.textContent = "";
+
+    if (!isDelivery || !dateStr) {
+      return { valid: true, isDelivery, monday: false, sunday: false };
     }
 
-    function populateSelect(selectId, options, defaultValue = "") {
-      const select = document.getElementById(selectId);
-      if (!select || !Array.isArray(options)) {
-        console.error("❌ 選單無法正確載入：" + selectId);
+    const d = new Date(dateStr + "T00:00:00");
+    const dow = d.getDay(); // 0=Sun,1=Mon,...6=Sat
+
+    if (dow === 0) { // 星期日
+      const msg = "⛔ 取貨日為星期日，無法選擇宅配。";
+      warnEl.textContent = msg;
+      warnEl.style.display = "block";
+      if (showAlert) alert(msg);
+      return { valid: false, isDelivery, monday: false, sunday: true };
+    }
+
+    if (dow === 1) { // 星期一
+      const msg = "⚠️ 取貨日為星期一：請先和客人確認蛋糕會多放一天（週日不配送）。";
+      warnEl.textContent = msg;
+      warnEl.style.display = "block";
+      return { valid: true, isDelivery, monday: true, sunday: false };
+    }
+
+    return { valid: true, isDelivery, monday: false, sunday: false };
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("loadingMessage").style.display = "";
+    loadCakeData();
+
+    document.getElementById("cakeFlavor").addEventListener("change", autoFillSpecOptions);
+    document.getElementById("size").addEventListener("change", updateCalculatedPrice);
+    document.getElementById("quantity").addEventListener("input", updateCalculatedPrice);
+    document.getElementById("discount").addEventListener("input", updateCalculatedPrice);
+
+    document.getElementById("pickupTime").addEventListener("change", () => {
+      toggleDeliveryFields();
+      checkDeliveryDateRules(false);
+    });
+    document.getElementById("pickupDate").addEventListener("change", () => {
+      checkDeliveryDateRules(false);
+    });
+
+    // 初始同步（避免預設值是宅配但沒顯示）
+    ensureDeliveryWarningPlaceholder();
+    setTimeout(() => {
+      toggleDeliveryFields();
+      checkDeliveryDateRules(false);
+    }, 0);
+
+    // ✅ 表單送出
+    document.getElementById("orderForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      // 先檢查宅配日期規則
+      const rule = checkDeliveryDateRules(true);
+      if (!rule.valid) {
+        document.getElementById("responseMessage").innerText = "🚫 星期日不提供宅配，請改選取貨方式或日期";
         return;
       }
-      select.innerHTML = "";
-      const blankOption = document.createElement("option");
-      blankOption.value = "";
-      blankOption.textContent = "";
-      select.appendChild(blankOption);
-      options.forEach(option => {
-        const opt = document.createElement("option");
-        opt.value = option;
-        opt.textContent = option;
-        select.appendChild(opt);
-      });
-      select.value = defaultValue;
-    }
 
-    function autoFillSpecOptions() {
-      const selectedFlavor = document.getElementById("cakeFlavor").value.trim();
-      const matchedSpecs = cakeData
-        .filter(item => item["品項名稱"] === selectedFlavor)
-        .map(item => item["規格"]);
-      const uniqueSpecs = [...new Set(matchedSpecs)];
-      populateDatalist("sizeOptions", "size", uniqueSpecs);
-      updateCalculatedPrice();
-    }
+      const pickupDate = document.getElementById("pickupDate").value;
+      const cakeFlavor = document.getElementById("cakeFlavor").value;
+      const method = document.getElementById("pickupTime").value || "";
+      const isDelivery = method.includes("宅配");
 
-    function updateCalculatedPrice() {
-      const flavor = document.getElementById("cakeFlavor").value.trim();
-      const size = document.getElementById("size").value.trim();
-      const quantity = parseFloat(document.getElementById("quantity").value) || 0;
-      const discount = parseFloat(document.getElementById("discount").value) || 1;
-
-      const matched = cakeData.find(item =>
-        item["品項名稱"] === flavor && item["規格"] === size
-      );
-
-      const unitPrice = matched ? parseFloat(matched["售價"]) : 0;
-      const totalPrice = unitPrice * quantity * discount;
-
-      document.getElementById("price").value = totalPrice ? totalPrice.toFixed(0) : "";
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      // 顯示載入中訊息
-      document.getElementById("loadingMessage").style.display = "";
-      loadCakeData();
-      document.getElementById("cakeFlavor").addEventListener("change", autoFillSpecOptions);
-      document.getElementById("size").addEventListener("change", updateCalculatedPrice);
-      document.getElementById("quantity").addEventListener("input", updateCalculatedPrice);
-      document.getElementById("discount").addEventListener("input", updateCalculatedPrice);
-
-      // ✅ 表單送出邏輯放這裡！
-      document.getElementById("orderForm").addEventListener("submit", function (event) {
-        event.preventDefault(); // 防止預設送出
-        // 跳出確認通知
-        const pickupDate = document.getElementById("pickupDate").value;
-        const cakeFlavor = document.getElementById("cakeFlavor").value;
-        const confirmMessage = `取貨日期：${pickupDate}\n蛋糕口味：${cakeFlavor}\n\n請確認資料是否正確並送出？`;
-
-        if (!confirm(confirmMessage)) {
-          document.getElementById("responseMessage").innerText = "🚫 訂單已取消";
-          return;
+      // 宅配：預設收件人/電話
+      if (isDelivery) {
+        const recipient = document.getElementById("recipient").value.trim();
+        const phone = document.getElementById("phone").value.trim();
+        if (!document.getElementById("shipName").value.trim()) {
+          document.getElementById("shipName").value = recipient;
         }
+        if (!document.getElementById("shipPhone").value.trim()) {
+          document.getElementById("shipPhone").value = phone;
+        }
+      }
 
-        const formData = new URLSearchParams();
-        formData.append("paymentStatus", document.getElementById("paymentStatus").value);
-        formData.append("source", document.getElementById("source").value);
-        formData.append("pickupDate", document.getElementById("pickupDate").value);
-        formData.append("recipient", document.getElementById("recipient").value);
-        formData.append("phone", document.getElementById("phone").value);
-        formData.append("cakeFlavor", document.getElementById("cakeFlavor").value);
-        formData.append("size", document.getElementById("size").value);
-        formData.append("quantity", document.getElementById("quantity").value);
-        formData.append("candles", document.getElementById("candles").value);
-        formData.append("discount", document.getElementById("discount").value);
-        formData.append("pickupTime", document.getElementById("pickupTime").value);
-        formData.append("price", document.getElementById("price").value);
-        formData.append("registrant", document.getElementById("registrant").value);
-        formData.append("notes", document.getElementById("notes").value);
+      // 確認訊息
+      let confirmMessage = `取貨日期：${pickupDate}\n蛋糕口味：${cakeFlavor}\n方式／時段：${method}`;
+      if (isDelivery) {
+        confirmMessage += `\n\n【配送資訊】\n收件人：${document.getElementById("shipName").value}\n電話：${document.getElementById("shipPhone").value}\n地址：${document.getElementById("shipAddress").value}`;
+      }
+      confirmMessage += `\n\n請確認資料是否正確並送出？`;
+      if (rule.isDelivery && rule.monday) {
+        confirmMessage = "⚠️ 宅配且取貨日為星期一：請先與客人確認蛋糕會多放一天。\n\n" + confirmMessage;
+      }
 
-        fetch("https://script.google.com/macros/s/AKfycbzyd9UQMJ8UYKvm_gqSxuxJRILAYmqFdd-SSYJscXojYRg-XLcbcna6qJWuKQ0Te8Lmaw/exec", {
-          method: "POST",
-          body: formData.toString(),
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          mode: "no-cors"
-        })
-        .then(() => {
-          // ⚠️ 因為是 no-cors 所以不能 .json()，直接視為成功
-          console.log("✅ 資料已送出（no-cors 模式）");
-          document.getElementById("responseMessage").innerText = "✅ 訂單已送出";
-        })
-        .catch(err => {
-          console.error("❌ 發送失敗：", err);
-          document.getElementById("responseMessage").innerText = "❌ 無法送出訂單，請稍後重試";
-        });
+      if (!confirm(confirmMessage)) {
+        document.getElementById("responseMessage").innerText = "🚫 訂單已取消";
+        return;
+      }
+
+      const formData = new URLSearchParams();
+      formData.append("paymentStatus", document.getElementById("paymentStatus").value);
+      formData.append("source", document.getElementById("source").value);
+      formData.append("pickupDate", document.getElementById("pickupDate").value);
+      formData.append("recipient", document.getElementById("recipient").value);
+      formData.append("phone", document.getElementById("phone").value);
+      formData.append("cakeFlavor", document.getElementById("cakeFlavor").value);
+      formData.append("size", document.getElementById("size").value);
+      formData.append("quantity", document.getElementById("quantity").value);
+      formData.append("candles", document.getElementById("candles").value);
+      formData.append("discount", document.getElementById("discount").value);
+      formData.append("pickupTime", document.getElementById("pickupTime").value);
+      formData.append("price", document.getElementById("price").value);
+      formData.append("registrant", document.getElementById("registrant").value);
+      formData.append("notes", document.getElementById("notes").value);
+      formData.append("shipName", document.getElementById("shipName").value);
+      formData.append("shipPhone", document.getElementById("shipPhone").value);
+      formData.append("shipAddress", document.getElementById("shipAddress").value);
+
+      // 注意：這個 URL 是你的 doPost 端點，與 doGet 可不同
+      fetch("https://script.google.com/macros/s/AKfycbwz-IKKRLSVEYnowHP1fG_dQ6RUILXhJY9Hxi_fPf7v4BlAYSx5maqc9SoYiBqNBQKjhg/exec", {
+        method: "POST",
+        body: formData.toString(),
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        mode: "no-cors"
+      })
+      .then(() => {
+        console.log("✅ 資料已送出（no-cors 模式）");
+        document.getElementById("responseMessage").innerText = "✅ 訂單已送出";
+      })
+      .catch(err => {
+        console.error("❌ 發送失敗：", err);
+        document.getElementById("responseMessage").innerText = "❌ 無法送出訂單，請稍後重試";
       });
     });
-function clearForm() {
-  document.getElementById("orderForm").reset();
-  document.getElementById("responseMessage").innerText = "";
-}
-  </script>
+  });
+
+  function clearForm() {
+    document.getElementById("orderForm").reset();
+    document.getElementById("responseMessage").innerText = "";
+    toggleDeliveryFields();
+    checkDeliveryDateRules(false);
+  }
+</script>
 </body>
 </html>
