@@ -30,6 +30,14 @@
     label {
       font-size: 0.9rem;
     }
+      .logo-img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    margin-right: 12px;
+  }
   </style>
 </head>
 <body>
@@ -38,7 +46,10 @@
     <div class="d-flex justify-content-end mb-3">
       <button type="button" class="btn btn-warning" onclick="clearForm()">清空表單</button>
     </div>
-    <h2 class="text-center mb-4">月島甜點 Google Sheets 訂單輸入</h2>
+    <div class="d-flex align-items-center justify-content-center mb-4">
+      <img src="./fakemoon.png" alt="月島甜點 Logo" class="logo-img">
+      <h2 class="mb-0">月島甜點 Google Sheets 訂單輸入</h2>
+    </div>
     <form id="orderForm">
       <div class="row">
         <div class="col-md-6">
