@@ -260,6 +260,7 @@
   <script>
   let cakeData = [];
   const searchableDropdowns = {};
+  const orderSheetUrl = "https://docs.google.com/spreadsheets/d/1YgUKW-cJJSnYgvYihAqcNI0c7V3JxREfGpR5_5vse68/edit?gid=187829664#gid=187829664";
 
   function loadCakeData() {
     const url = "https://script.google.com/macros/s/AKfycbzyd9UQMJ8UYKvm_gqSxuxJRILAYmqFdd-SSYJscXojYRg-XLcbcna6qJWuKQ0Te8Lmaw/exec";
@@ -489,6 +490,22 @@
     responseMessage.innerText = message;
   }
 
+  function setResponseMessageWithSheetLink(prefix, suffix = "", colorClass = "text-success") {
+    const responseMessage = document.getElementById("responseMessage");
+    const link = document.createElement("a");
+
+    responseMessage.className = `mt-3 text-center ${colorClass}`;
+    responseMessage.innerText = prefix;
+
+    link.href = orderSheetUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "訂單表";
+
+    responseMessage.appendChild(link);
+    responseMessage.appendChild(document.createTextNode(suffix));
+  }
+
   function showFieldError(inputId, message) {
     const input = document.getElementById(inputId);
     setResponseMessage(message, "text-danger");
@@ -679,11 +696,11 @@
       })
       .then(() => {
         console.log("✅ 資料已送出（no-cors 模式）");
-        setResponseMessage("✅ 訂單已送出，可於（網址）確認");
+        setResponseMessageWithSheetLink("✅ 訂單已送出，可於", "確認");
       })
       .catch(err => {
         console.error("❌ 發送狀態無法確認：", err);
-        setResponseMessage("⚠️ 訂單已送出，但系統無法確認結果，可於（網址）確認，請勿重複送出", "text-warning");
+        setResponseMessageWithSheetLink("⚠️ 訂單已送出，但系統無法確認結果，可於", "確認，請勿重複送出", "text-warning");
       });
     });
   });
