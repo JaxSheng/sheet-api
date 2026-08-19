@@ -679,11 +679,11 @@
       })
       .then(() => {
         console.log("✅ 資料已送出（no-cors 模式）");
-        setResponseMessage("✅ 訂單已送出");
+        setResponseMessage("✅ 訂單已送出，可於（網址）確認");
       })
       .catch(err => {
-        console.error("❌ 發送失敗：", err);
-        setResponseMessage("❌ 無法送出訂單，請稍後重試", "text-danger");
+        console.error("❌ 發送狀態無法確認：", err);
+        setResponseMessage("⚠️ 訂單已送出，但系統無法確認結果，可於（網址）確認，請勿重複送出", "text-warning");
       });
     });
   });
