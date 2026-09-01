@@ -21,7 +21,7 @@
       color: #007bff;
     }
     .form-control {
-      font-size: 0.9rem;
+      font-size: 1rem;
       padding: 0.25rem 0.5rem;
     }
     .form-group {
@@ -36,8 +36,115 @@
     object-fit: contain;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-    margin-right: 12px;
+    margin-right: 0;
   }
+    .brand-header {
+      gap: 12px;
+    }
+    .page-title {
+      flex: 1 1 280px;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .searchable-select {
+      position: relative;
+    }
+    .searchable-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      z-index: 1050;
+      display: none;
+      max-height: 260px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #ced4da;
+      border-radius: 6px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.14);
+    }
+    .searchable-dropdown.show {
+      display: block;
+    }
+    .searchable-option {
+      width: 100%;
+      min-height: 40px;
+      padding: 0.5rem 0.75rem;
+      border: 0;
+      background: #fff;
+      color: #212529;
+      text-align: left;
+      font-size: 1rem;
+      line-height: 1.35;
+    }
+    .searchable-option:hover,
+    .searchable-option:focus,
+    .searchable-option.active {
+      background: #e9f2ff;
+      outline: none;
+    }
+    .searchable-empty {
+      padding: 0.65rem 0.75rem;
+      color: #6c757d;
+      font-size: 0.95rem;
+    }
+    @media (max-width: 576px) {
+      body {
+        background-color: #fff;
+      }
+      .container {
+        margin-top: 0;
+        padding: 14px;
+        border-radius: 0;
+        box-shadow: none;
+      }
+      .logo-img {
+        width: 48px;
+        height: 48px;
+        margin-right: 0;
+      }
+      .brand-header {
+        gap: 8px;
+        justify-content: flex-start !important;
+      }
+      .page-title {
+        flex: 1 1 0;
+        max-width: calc(100% - 56px);
+        font-size: 1.25rem;
+        line-height: 1.25;
+      }
+      .d-flex.justify-content-end {
+        justify-content: stretch !important;
+      }
+      .d-flex.justify-content-end .btn {
+        width: 100%;
+      }
+      .form-control {
+        min-height: 42px;
+        font-size: 16px;
+      }
+      textarea.form-control {
+        min-height: 78px;
+      }
+      .btn {
+        min-height: 42px;
+      }
+      #orderForm .row {
+        margin-left: 0;
+        margin-right: 0;
+      }
+      #orderForm .row > [class*="col-"] {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .searchable-dropdown {
+        max-height: 42vh;
+      }
+      .searchable-option {
+        min-height: 44px;
+        padding: 0.65rem 0.75rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -46,9 +153,9 @@
     <div class="d-flex justify-content-end mb-3">
       <button type="button" class="btn btn-warning" onclick="clearForm()">清空表單</button>
     </div>
-    <div class="d-flex align-items-center justify-content-center mb-4">
+    <div class="brand-header d-flex align-items-center justify-content-center flex-wrap mb-4">
       <img src="./fakemoon.png" alt="月島甜點 Logo" class="logo-img">
-      <h2 class="mb-0">月島甜點 Google Sheets 訂單輸入</h2>
+      <h2 class="page-title mb-0">月島甜點 Google Sheets 訂單輸入</h2>
     </div>
     <form id="orderForm">
       <div class="row">
@@ -59,8 +166,10 @@
           </div>
           <div class="form-group">
             <label for="source">來源：</label>
-            <input list="sourceOptions" id="source" class="form-control" >
-            <datalist id="sourceOptions"></datalist>
+            <div class="searchable-select">
+              <input id="source" class="form-control" autocomplete="off">
+              <div id="sourceDropdown" class="searchable-dropdown" role="listbox"></div>
+            </div>
           </div>
           <div class="form-group">
             <label for="pickupDate">*取貨日期：</label>
@@ -86,13 +195,17 @@
         <div class="col-md-6">
           <div class="form-group">
             <label for="cakeFlavor">*品項：</label>
-            <input list="cakeFlavorOptions" id="cakeFlavor" class="form-control" required>
-            <datalist id="cakeFlavorOptions"></datalist>
+            <div class="searchable-select">
+              <input id="cakeFlavor" class="form-control" autocomplete="off" required>
+              <div id="cakeFlavorDropdown" class="searchable-dropdown" role="listbox"></div>
+            </div>
           </div>
           <div class="form-group">
-            <label for="size">規格：</label>
-            <input list="sizeOptions" id="size" class="form-control">
-            <datalist id="sizeOptions"></datalist>
+            <label for="size">*規格：</label>
+            <div class="searchable-select">
+              <input id="size" class="form-control" autocomplete="off">
+              <div id="sizeDropdown" class="searchable-dropdown" role="listbox"></div>
+            </div>
           </div>
           <div class="form-group">
             <label for="quantity">*數量：</label>
@@ -100,8 +213,10 @@
           </div>
           <div class="form-group">
             <label for="candles">蠟燭：</label>
-            <input list="candlesOptions" id="candles" class="form-control" >
-            <datalist id="candlesOptions"></datalist>
+            <div class="searchable-select">
+              <input id="candles" class="form-control" autocomplete="off">
+              <div id="candlesDropdown" class="searchable-dropdown" role="listbox"></div>
+            </div>
           </div>
           <div class="form-group">
             <label for="discount">*折扣：</label>
@@ -144,6 +259,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
   let cakeData = [];
+  const searchableDropdowns = {};
+  const orderSheetUrl = "https://docs.google.com/spreadsheets/d/1YgUKW-cJJSnYgvYihAqcNI0c7V3JxREfGpR5_5vse68/edit?gid=187829664#gid=187829664";
 
   function loadCakeData() {
     const url = "https://script.google.com/macros/s/AKfycbzyd9UQMJ8UYKvm_gqSxuxJRILAYmqFdd-SSYJscXojYRg-XLcbcna6qJWuKQ0Te8Lmaw/exec";
@@ -158,18 +275,17 @@
         cakeData = data.cakes;
 
         const flavorSet = [...new Set(cakeData.map(item => item["品項名稱"]).filter(Boolean))];
-        populateDatalist("cakeFlavorOptions", "cakeFlavor", flavorSet);
+        setupSearchableDropdown("cakeFlavor", flavorSet);
 
         const options = data.options;
         populateSelect("paymentStatus", options["付款狀態"]);
-        populateDatalist("sourceOptions", "source", options["來源"]);
-        populateDatalist("candlesOptions", "candles", options["蠟燭"]);
+        setupSearchableDropdown("source", options["來源"]);
+        setupSearchableDropdown("candles", options["蠟燭"]);
         populateSelect("pickupTime", options["方式/時段"]);
         populateSelect("registrant", options["聯絡窗口"]);
-        populateDatalist("discountOptions", "discount", options["折扣"]);
 
         console.log("✅ 資料成功載入");
-        document.getElementById("responseMessage").innerText = "✅ 資料成功載入";
+        setResponseMessage("✅ 資料成功載入");
         document.getElementById("loadingMessage").style.display = "none";
 
         // 載入完成做一次狀態同步
@@ -178,25 +294,148 @@
       })
       .catch(err => {
         console.error("❌ 載入失敗：", err);
-        document.getElementById("responseMessage").innerText = "❌ 資料載入失敗，請重試";
+        setResponseMessage("❌ 資料載入失敗，請重試", "text-danger");
         document.getElementById("loadingMessage").style.display = "none";
       });
   }
 
-  function populateDatalist(datalistId, inputId, options) {
-    const datalist = document.getElementById(datalistId);
-    if (!datalist || !Array.isArray(options)) return;
+  function setupSearchableDropdown(inputId, options) {
+    const input = document.getElementById(inputId);
+    const dropdown = document.getElementById(inputId + "Dropdown");
+    if (!input || !dropdown || !Array.isArray(options)) return;
 
-    datalist.innerHTML = "";
-    const blankOption = document.createElement("option");
-    blankOption.value = "";
-    datalist.appendChild(blankOption);
+    searchableDropdowns[inputId] = {
+      input,
+      dropdown,
+      options: options.filter(Boolean),
+      activeIndex: -1,
+      initialized: searchableDropdowns[inputId]?.initialized || false
+    };
 
-    options.forEach(option => {
-      const opt = document.createElement("option");
-      opt.value = option;
-      datalist.appendChild(opt);
+    input.setAttribute("role", "combobox");
+    input.setAttribute("aria-autocomplete", "list");
+    input.setAttribute("aria-expanded", "false");
+    input.setAttribute("aria-controls", inputId + "Dropdown");
+
+    if (searchableDropdowns[inputId].initialized) {
+      if (document.activeElement === input) {
+        renderSearchableOptions(inputId);
+      } else {
+        closeSearchableDropdown(inputId);
+      }
+      return;
+    }
+
+    searchableDropdowns[inputId].initialized = true;
+
+    input.addEventListener("focus", () => {
+      searchableDropdowns[inputId].activeIndex = -1;
+      renderSearchableOptions(inputId);
     });
+
+    input.addEventListener("input", () => {
+      searchableDropdowns[inputId].activeIndex = -1;
+      renderSearchableOptions(inputId);
+    });
+
+    input.addEventListener("keydown", event => {
+      handleSearchableKeydown(event, inputId);
+    });
+
+    input.addEventListener("blur", () => {
+      setTimeout(() => closeSearchableDropdown(inputId), 150);
+    });
+  }
+
+  function renderSearchableOptions(inputId) {
+    const state = searchableDropdowns[inputId];
+    if (!state) return;
+
+    const query = state.input.value.trim().toLowerCase();
+    const matchedOptions = state.options
+      .filter(option => String(option).toLowerCase().includes(query))
+      .slice(0, 80);
+
+    state.dropdown.innerHTML = "";
+
+    if (matchedOptions.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "searchable-empty";
+      empty.textContent = "沒有符合的選項";
+      state.dropdown.appendChild(empty);
+    } else {
+      matchedOptions.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "searchable-option";
+        button.setAttribute("role", "option");
+        button.textContent = option;
+        button.addEventListener("mousedown", event => event.preventDefault());
+        button.addEventListener("click", () => selectSearchableOption(inputId, option));
+        if (index === state.activeIndex) button.classList.add("active");
+        state.dropdown.appendChild(button);
+      });
+    }
+
+    state.dropdown.classList.add("show");
+    state.input.setAttribute("aria-expanded", "true");
+  }
+
+  function closeSearchableDropdown(inputId) {
+    const state = searchableDropdowns[inputId];
+    if (!state) return;
+    state.dropdown.classList.remove("show");
+    state.input.setAttribute("aria-expanded", "false");
+    state.activeIndex = -1;
+  }
+
+  function closeAllSearchableDropdowns(exceptInputId) {
+    Object.keys(searchableDropdowns).forEach(inputId => {
+      if (inputId !== exceptInputId) closeSearchableDropdown(inputId);
+    });
+  }
+
+  function selectSearchableOption(inputId, value) {
+    const state = searchableDropdowns[inputId];
+    if (!state) return;
+
+    state.input.value = value;
+    closeSearchableDropdown(inputId);
+    state.input.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function getVisibleSearchableOptions(inputId) {
+    const state = searchableDropdowns[inputId];
+    if (!state) return [];
+    return Array.from(state.dropdown.querySelectorAll(".searchable-option"));
+  }
+
+  function handleSearchableKeydown(event, inputId) {
+    const state = searchableDropdowns[inputId];
+    if (!state) return;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (!state.dropdown.classList.contains("show")) renderSearchableOptions(inputId);
+      const optionButtons = getVisibleSearchableOptions(inputId);
+      state.activeIndex = Math.min(state.activeIndex + 1, optionButtons.length - 1);
+      renderSearchableOptions(inputId);
+      getVisibleSearchableOptions(inputId)[state.activeIndex]?.scrollIntoView({ block: "nearest" });
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!state.dropdown.classList.contains("show")) renderSearchableOptions(inputId);
+      state.activeIndex = Math.max(state.activeIndex - 1, 0);
+      renderSearchableOptions(inputId);
+      getVisibleSearchableOptions(inputId)[state.activeIndex]?.scrollIntoView({ block: "nearest" });
+    } else if (event.key === "Enter" && state.dropdown.classList.contains("show")) {
+      const activeOption = getVisibleSearchableOptions(inputId)[state.activeIndex];
+      if (activeOption) {
+        event.preventDefault();
+        selectSearchableOption(inputId, activeOption.textContent);
+      }
+    } else if (event.key === "Escape") {
+      closeSearchableDropdown(inputId);
+    }
   }
 
   function populateSelect(selectId, options, defaultValue = "") {
@@ -225,7 +464,7 @@
       .filter(item => item["品項名稱"] === selectedFlavor)
       .map(item => item["規格"]);
     const uniqueSpecs = [...new Set(matchedSpecs)];
-    populateDatalist("sizeOptions", "size", uniqueSpecs);
+    setupSearchableDropdown("size", uniqueSpecs);
     updateCalculatedPrice();
   }
 
@@ -243,6 +482,46 @@
     const totalPrice = unitPrice * quantity * discount;
 
     document.getElementById("price").value = totalPrice ? totalPrice.toFixed(0) : "";
+  }
+
+  function setResponseMessage(message, colorClass = "text-success") {
+    const responseMessage = document.getElementById("responseMessage");
+    responseMessage.className = `mt-3 text-center ${colorClass}`;
+    responseMessage.innerText = message;
+  }
+
+  function setResponseMessageWithSheetLink(prefix, suffix = "", colorClass = "text-success") {
+    const responseMessage = document.getElementById("responseMessage");
+    const link = document.createElement("a");
+
+    responseMessage.className = `mt-3 text-center ${colorClass}`;
+    responseMessage.innerText = prefix;
+
+    link.href = orderSheetUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = "訂單表";
+
+    responseMessage.appendChild(link);
+    responseMessage.appendChild(document.createTextNode(suffix));
+  }
+
+  function showFieldError(inputId, message) {
+    const input = document.getElementById(inputId);
+    setResponseMessage(message, "text-danger");
+    input.focus();
+    if (searchableDropdowns[inputId]) {
+      renderSearchableOptions(inputId);
+    }
+  }
+
+  function validateOrderFields() {
+    const size = document.getElementById("size").value.trim();
+    if (!size) {
+      showFieldError("size", "請先選擇規格，再送出訂單");
+      return false;
+    }
+    return true;
   }
 
   function toggleDeliveryFields() {
@@ -324,6 +603,16 @@
     document.getElementById("pickupDate").addEventListener("change", () => {
       checkDeliveryDateRules(false);
     });
+    document.addEventListener("click", event => {
+      Object.keys(searchableDropdowns).forEach(inputId => {
+        const state = searchableDropdowns[inputId];
+        if (!state.input.parentElement.contains(event.target)) {
+          closeSearchableDropdown(inputId);
+        } else {
+          closeAllSearchableDropdowns(inputId);
+        }
+      });
+    });
 
     // 初始同步（避免預設值是宅配但沒顯示）
     ensureDeliveryWarningPlaceholder();
@@ -336,10 +625,14 @@
     document.getElementById("orderForm").addEventListener("submit", function (event) {
       event.preventDefault();
 
+      if (!validateOrderFields()) {
+        return;
+      }
+
       // 先檢查宅配日期規則
       const rule = checkDeliveryDateRules(true);
       if (!rule.valid) {
-        document.getElementById("responseMessage").innerText = "🚫 星期日不提供宅配，請改選取貨方式或日期";
+        setResponseMessage("🚫 星期日不提供宅配，請改選取貨方式或日期", "text-danger");
         return;
       }
 
@@ -371,7 +664,7 @@
       }
 
       if (!confirm(confirmMessage)) {
-        document.getElementById("responseMessage").innerText = "🚫 訂單已取消";
+        setResponseMessage("🚫 訂單已取消", "text-danger");
         return;
       }
 
@@ -403,18 +696,19 @@
       })
       .then(() => {
         console.log("✅ 資料已送出（no-cors 模式）");
-        document.getElementById("responseMessage").innerText = "✅ 訂單已送出";
+        setResponseMessageWithSheetLink("✅ 訂單已送出，可於", "確認");
       })
       .catch(err => {
-        console.error("❌ 發送失敗：", err);
-        document.getElementById("responseMessage").innerText = "❌ 無法送出訂單，請稍後重試";
+        console.error("❌ 發送狀態無法確認：", err);
+        setResponseMessageWithSheetLink("⚠️ 訂單已送出，但系統無法確認結果，可於", "確認，請勿重複送出", "text-warning");
       });
     });
   });
 
   function clearForm() {
     document.getElementById("orderForm").reset();
-    document.getElementById("responseMessage").innerText = "";
+    setResponseMessage("");
+    closeAllSearchableDropdowns();
     toggleDeliveryFields();
     checkDeliveryDateRules(false);
   }
